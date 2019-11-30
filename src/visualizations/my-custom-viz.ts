@@ -111,8 +111,7 @@ const vis: BarChartRace = {
 
         var k =10
 
-        function keyframes(){  
-        //keyframes = {
+        var keyframes = function(){
           const keyframes = [];
           let ka, a, kb, b;
           for ([[ka, a], [kb, b]] of d3.pairs(datevalues)) {

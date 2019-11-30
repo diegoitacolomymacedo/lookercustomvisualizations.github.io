@@ -3,7 +3,10 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es6",
-    "sourceMap": true
+    "sourceMap": true,
+    "lib": [
+      "es2019"
+    ]
   },
   "exclude": [
     "node_modules"
