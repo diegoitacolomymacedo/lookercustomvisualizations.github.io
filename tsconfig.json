@@ -5,7 +5,8 @@
     "target": "es6",
     "sourceMap": true,
     "lib": [
-      "es2019"
+      "esnext",
+      "dom",
     ]
   },
   "exclude": [
