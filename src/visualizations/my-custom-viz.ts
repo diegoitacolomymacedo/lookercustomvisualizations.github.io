@@ -71,8 +71,11 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   const formatDate = d3.utcFormat("%Y");
   const names = new Set(data.map(d => d['vw_watchtime_bar_racing.nome'].value))
   let datevalues = Array.from(d3array.rollup(data, ([d]) => d['vw_watchtime_bar_racing.valor'].value, d => d['vw_watchtime_bar_racing.data'].value, d => d['vw_watchtime_bar_racing.nome'].value))
-  datevalues = datevalues.map(([date, data]) => [new Date(date), data]);
+  console.log(datevalues);
+  datevalues = datevalues.map(([date, data]) => [new Date(date+'T00:00:00'), data]);
+  console.log(datevalues);
   datevalues = datevalues.sort(([a], [b]) => d3.ascending(a, b));
+  console.log(datevalues);
 
   const genKeyframes = () => {
     const frames = [];
@@ -169,7 +172,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
         .tickSizeInner(-barSize * (n + y.padding()));
 
     return (_, transition) => {
-      console.log('updateAxis');
+      //console.log('updateAxis');
       g.transition(transition).call(axis);
       g.select(".tick:first-of-type text").remove();
       g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "white");
@@ -201,7 +204,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   }
 
   const chart = async () => {
-    console.log('chart');
+    //console.log('chart');
     const svg = this.svg.attr('width', width).attr('height', height);
     const updateBars = bars(svg);
     const updateAxis = axis(svg);
@@ -210,7 +213,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
 
     const frames = genKeyframes();
 
-    console.log(frames);
+    //console.log(frames);
 
     for (const keyframe of frames) {
       const transition = svg.transition()
@@ -229,20 +232,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   }
 
   chart();
-  doneRendering();
-
-  // var firstRow = data[0];
-  // var firstCell = firstRow[queryResponse.fields.dimensions[0].name].value;        
-
-
-  //this._textElement.innerHTML = LookerChart.Utils.htmlForCell(firstCell)
-  // this._textElement.innerHTML = LookerCharts.Utils.htmlForCell(firstRow[queryResponse.fields.dimensions[0].name].value);
-
-
-
-  // if (errors) { // errors === true means no errors
-  //     element.innerHTML = 'Hello Looker!';
-  // }
+  doneRendering();  
 }
 
 const vis: BarChartRace = {
