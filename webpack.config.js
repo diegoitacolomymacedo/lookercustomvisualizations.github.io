@@ -4,7 +4,7 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 let webpackConfig = {
     entry: {
-        myCustomViz: './src/visualizations/my-custom-viz.ts'
+        barChartRacing: './src/visualizations/bar-Chart-Racing.ts'
     },
     output: {
         filename: '[name].js',

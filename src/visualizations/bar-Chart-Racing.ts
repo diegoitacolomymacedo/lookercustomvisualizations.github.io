@@ -40,12 +40,16 @@ const create = (element, config) => {
     .attr("fill-opacity", 0.6);
   this.svg.append("g")
     .attr('class', 'g-labels')
-    .style("font", "bold 12px var(--sans-serif)")
+    .attr("font-weight","bold")
+    .attr("font-size","12px")
+    .attr("font-family","sans-serif")
     .style("font-variant-numeric", "tabular-nums")
     .attr("text-anchor", "end")
   this.svg.append("text")
     .attr('class', 'g-ticker')
-    .style("font", `bold ${barSize}px var(--sans-serif)`)
+    .attr("font-weight", "bold")
+    .attr("font-family","sans-serif")
+    .attr("font-size","48px")
     .style("font-variant-numeric", "tabular-nums")
     .attr("text-anchor", "end");
 }
@@ -68,14 +72,12 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
       .padding(0.1);
 
   const formatNumber = d3.format(",d");
-  const formatDate = d3.utcFormat("%Y");
+  const formatDate = d3.utcFormat("%B, %Y");
   const names = new Set(data.map(d => d['vw_watchtime_bar_racing.nome'].value))
+  console.log(data[1]);
   let datevalues = Array.from(d3array.rollup(data, ([d]) => d['vw_watchtime_bar_racing.valor'].value, d => d['vw_watchtime_bar_racing.data'].value, d => d['vw_watchtime_bar_racing.nome'].value))
-  //console.log(datevalues);
   datevalues = datevalues.map(([date, data]) => [new Date(date+'T00:00:00'), data]);
-  //console.log(datevalues);
   datevalues = datevalues.sort(([a], [b]) => d3.ascending(a, b));
-  //console.log(datevalues);
 
   const genKeyframes = () => {
     const frames = [];
@@ -186,6 +188,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
         .attr("x", width - 6)
         .attr("y", margin.top + barSize * (n - 0.45))
         .attr("dy", "0.32em")
+        //.attr("font-weight", "bold")
         .text(formatDate(genKeyframes()[0][0]));
 
     return ([date], transition) => {
@@ -194,41 +197,38 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   }
 
   const color = () => {
-  //color = {
-    //console.log(data.some(d => d.tele_studio));
+      
     const scale = d3.scaleOrdinal(d3.schemeTableau10);
     if (data.some(d => d['vw_watchtime_bar_racing.tele_studio'].value !== undefined)) {
-      //console.log(data);
+      
       const categoryByName = new Map(data.map(d => [d['vw_watchtime_bar_racing.nome'].value, d['vw_watchtime_bar_racing.tele_studio'].value]))
-      //console.log(categoryByName);
+      
       scale.domain(Array.from(categoryByName.values()));
-      //console.log(scale(categoryByName.get('A Escala: Amizade Em Segundo Lugar')));
-      //console.log(d);
-      //console.log(data);
-      //data => console.log(data['vw_watchtime_bar_racing.nome'].value);
+    
       return d => scale(categoryByName.get(d.name));
     }
-    //console.log(data);
     return d => scale(d['vw_watchtime_bar_racing.nome'].value);
   }
   
 
 
   const titleLabel = () => {
-    //const scale = d3.scaleOrdinal(d3.schemeTableau10);
-    if (data.some(d => d['vw_watchtime_bar_racing.tele_studio'].value !== undefined)) {
+    
+      if (data.some(d => d['vw_watchtime_bar_racing.tele_studio'].value !== undefined)) {
+      
+      
 
       const categoryByName = new Map(data.map(d => [d['vw_watchtime_bar_racing.nome'].value, d['vw_watchtime_bar_racing.tele_studio'].value]))
       return d => `${d.name} - ${categoryByName.get(d.name)}`;
 
     }
-    //console.log(data);
+    
     return d => d['vw_watchtime_bar_racing.nome'].value;
   }
   
 
   const chart = async () => {
-    //console.log('chart');
+    
     const svg = this.svg.attr('width', width).attr('height', height);
     const updateBars = bars(svg);
     const updateAxis = axis(svg);
@@ -237,7 +237,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
 
     const frames = genKeyframes();
 
-    //console.log(frames);
+    
 
     for (const keyframe of frames) {
       const transition = svg.transition()
