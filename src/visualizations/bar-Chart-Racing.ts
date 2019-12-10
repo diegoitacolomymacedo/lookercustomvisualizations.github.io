@@ -50,7 +50,6 @@ const create = (element, config) => {
     .attr('class', 'g-ticker')
     .attr("font-weight", "bold")
     .attr("font-family","sans-serif")
-    //.attr("font-size","48px")
     .attr("font-size", "${barsize}px")
     .style("font-variant-numeric", "tabular-nums")
     .attr("text-anchor", "end");
@@ -83,9 +82,17 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
 
   const formatNumber = d3.format(",d");
   const formatDate = d3.utcFormat("%B, %Y");
-  const names = new Set(data.map(d => d['vw_watchtime_bar_racing.nome'].value))
+  const names = new Set(data.map(d => d[queryResponse.fields.dimensions[1].name].value))
   
-  let datevalues = Array.from(d3array.rollup(data, ([d]) => d['vw_watchtime_bar_racing.valor'].value, d => d['vw_watchtime_bar_racing.data'].value, d => d['vw_watchtime_bar_racing.nome'].value))
+  console.log("Data", data[1]);
+  var firstRow = data[0];
+  var firstCell = firstRow[queryResponse.fields.dimensions[0].name];
+  console.log("FirstRow" ,firstRow);
+  console.log("FirstCell", firstCell);
+
+
+
+  let datevalues = Array.from(d3array.rollup(data, ([d]) => d[queryResponse.fields.dimensions[2].name].value, d => d[queryResponse.fields.dimensions[0].name].value, d => d[queryResponse.fields.dimensions[1].name].value))
   datevalues = datevalues.map(([date, data]) => [new Date(date+'T00:00:00'), data]);
   datevalues = datevalues.sort(([a], [b]) => d3.ascending(a, b));
 
@@ -185,7 +192,6 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
         .tickSizeInner(-barSize * (barCount + y.padding()));
 
     return (_, transition) => {
-      //console.log('updateAxis');
       g.transition(transition).call(axis);
       g.select(".tick:first-of-type text").remove();
       g.selectAll(".tick:not(:first-of-type) line").attr("stroke", "white");
@@ -208,31 +214,28 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   const color = () => {
       
     const scale = d3.scaleOrdinal(d3.schemeTableau10);
-    if (data.some(d => d['vw_watchtime_bar_racing.tele_studio'].value !== undefined)) {
-      
-      const categoryByName = new Map(data.map(d => [d['vw_watchtime_bar_racing.nome'].value, d['vw_watchtime_bar_racing.tele_studio'].value]))
+        
+    if(queryResponse.fields.dimensions.length == 4){  
+      const categoryByName = new Map(data.map(d => [d[queryResponse.fields.dimensions[1].name].value, d[queryResponse.fields.dimensions[3].name].value]))
       
       scale.domain(Array.from(categoryByName.values()));
     
       return d => scale(categoryByName.get(d.name));
     }
-    return d => scale(d['vw_watchtime_bar_racing.nome'].value);
+    return d => scale(d.name);
   }
   
 
 
-  const titleLabel = () => {
-    
-      if (data.some(d => d['vw_watchtime_bar_racing.tele_studio'].value !== undefined)) {
-      
-      
+  const titleLabel = () => {    
 
-      const categoryByName = new Map(data.map(d => [d['vw_watchtime_bar_racing.nome'].value, d['vw_watchtime_bar_racing.tele_studio'].value]))
-      return d => `${d.name} - ${categoryByName.get(d.name)}`;
+      if(queryResponse.fields.dimensions.length == 4){   
 
+        const categoryByName = new Map(data.map(d => [d[queryResponse.fields.dimensions[1].name].value, d[queryResponse.fields.dimensions[3].name].value]))
+        return d => `${d.name} - ${categoryByName.get(d.name)}`;
     }
-    
-    return d => d['vw_watchtime_bar_racing.nome'].value;
+
+    return d => d.name;
   }
 
 
