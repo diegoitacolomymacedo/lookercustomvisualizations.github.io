@@ -84,7 +84,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   const formatNumber = d3.format(",d");
   const formatDate = d3.utcFormat("%B, %Y");
   const names = new Set(data.map(d => d['vw_watchtime_bar_racing.nome'].value))
-  console.log(data[1]);
+  
   let datevalues = Array.from(d3array.rollup(data, ([d]) => d['vw_watchtime_bar_racing.valor'].value, d => d['vw_watchtime_bar_racing.data'].value, d => d['vw_watchtime_bar_racing.nome'].value))
   datevalues = datevalues.map(([date, data]) => [new Date(date+'T00:00:00'), data]);
   datevalues = datevalues.sort(([a], [b]) => d3.ascending(a, b));
@@ -242,7 +242,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
 
   const chart = async () => {
     
-    while(replay) {
+    do {
       const svg = this.svg.attr('width', width).attr('height', height);
       const updateBars = bars(svg);
       const updateAxis = axis(svg);
@@ -266,9 +266,13 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
         updateTicker(keyframe, transition);
         await transition.end();
       }
-    }
-    await sleep(100000)
-  }
+
+      await sleep(10000)
+
+    } while(replay)
+    
+
+  } 
 
   chart();
   doneRendering();  
