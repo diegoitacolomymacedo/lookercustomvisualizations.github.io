@@ -19,10 +19,11 @@ interface BarChartRace extends VisualizationDefinition {
     elementRef?: HTMLDivElement,
 }
 
-const n = 10
-const k = 10
-const duration = 250
-const barSize = 48;
+let barCount = 12;
+const k = 10;
+let duration = 250;
+let barSize = 48;
+let replay = true;
 const margin = ({top: 16, right: 6, bottom: 6, left: 0});
 
 
@@ -49,7 +50,8 @@ const create = (element, config) => {
     .attr('class', 'g-ticker')
     .attr("font-weight", "bold")
     .attr("font-family","sans-serif")
-    .attr("font-size","48px")
+    //.attr("font-size","48px")
+    .attr("font-size", "${barsize}px")
     .style("font-variant-numeric", "tabular-nums")
     .attr("text-anchor", "end");
 }
@@ -63,12 +65,20 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     min_measures: 1,
     max_measures: 1
   });
+  
+  //load configs
+  barCount = config.barCount;
+  barSize = config.barsize;
+  duration = config.duration;
+  replay = config.replay;  
+
+
   const width = element.clientWidth
   const height = element.clientHeight
   const x = d3.scaleLinear([0, 1], [margin.left, width - margin.right]);
   const y = d3.scaleBand()
-      .domain(d3.range(n + 1))
-      .rangeRound([margin.top, margin.top + barSize * (n + 1 + 0.1)])
+      .domain(d3.range(barCount + 1))
+      .rangeRound([margin.top, margin.top + barSize * (barCount + 1 + 0.1)])
       .padding(0.1);
 
   const formatNumber = d3.format(",d");
@@ -100,7 +110,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     data.sort((a, b) => d3.descending(a.value, b.value));
     
     for (let i = 0; i < data.length; ++i){
-      data[i].rank = Math.min(n, i);
+      data[i].rank = Math.min(barCount, i);
     }
     return data;
   }
@@ -114,7 +124,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     let bar = svg.select('.g-bars').selectAll("rect");
 
     return ([date, data], transition) => bar = bar
-      .data(data.slice(0, n), d => d.name)
+      .data(data.slice(0, barCount), d => d.name)
       .join(
         enter => enter.append("rect")
           .attr("fill", color())
@@ -137,7 +147,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     let label = svg.select('.g-labels').selectAll("text");
 
     return ([date, data], transition) => label = label
-      .data(data.slice(0, n), d => d.name)
+      .data(data.slice(0, barCount), d => d.name)
       .join(
         enter => enter.append("text")
           .attr("transform", d => `translate(${x((prev.get(d) || d).value)},${y((prev.get(d) || d).rank)})`)
@@ -172,7 +182,7 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     const axis = d3.axisTop(x)
         .ticks(width / 160)
         .tickSizeOuter(0)
-        .tickSizeInner(-barSize * (n + y.padding()));
+        .tickSizeInner(-barSize * (barCount + y.padding()));
 
     return (_, transition) => {
       //console.log('updateAxis');
@@ -186,9 +196,8 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
   const ticker = (svg) => {
     const now = svg.select('.g-ticker')
         .attr("x", width - 6)
-        .attr("y", margin.top + barSize * (n - 0.45))
+        .attr("y", margin.top + barSize * (barCount - 0.45))
         .attr("dy", "0.32em")
-        //.attr("font-weight", "bold")
         .text(formatDate(genKeyframes()[0][0]));
 
     return ([date], transition) => {
@@ -225,34 +234,40 @@ const updateAsync = (data, element, config, queryResponse,details, doneRendering
     
     return d => d['vw_watchtime_bar_racing.nome'].value;
   }
-  
+
+
+  const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
 
   const chart = async () => {
     
-    const svg = this.svg.attr('width', width).attr('height', height);
-    const updateBars = bars(svg);
-    const updateAxis = axis(svg);
-    const updateLabels = labels(svg);
-    const updateTicker = ticker(svg);
+    while(replay) {
+      const svg = this.svg.attr('width', width).attr('height', height);
+      const updateBars = bars(svg);
+      const updateAxis = axis(svg);
+      const updateLabels = labels(svg);
+      const updateTicker = ticker(svg);
 
-    const frames = genKeyframes();
-
-    
-
-    for (const keyframe of frames) {
-      const transition = svg.transition()
-        .duration(duration)
-        .ease(d3.easeLinear);
+      const frames = genKeyframes();
       
-      // Extract the top bar’s value.
-      x.domain([0, keyframe[1][0].value]);
-      updateAxis(keyframe, transition);
-      updateBars(keyframe, transition);
-      updateLabels(keyframe, transition);
-      updateTicker(keyframe, transition);
-      await transition.end();
-    }
+      
 
+      for (const keyframe of frames) {
+        const transition = svg.transition()
+          .duration(duration)
+          .ease(d3.easeLinear);
+        
+        // Extract the top bar’s value.
+        x.domain([0, keyframe[1][0].value]);
+        updateAxis(keyframe, transition);
+        updateBars(keyframe, transition);
+        updateLabels(keyframe, transition);
+        updateTicker(keyframe, transition);
+        await transition.end();
+      }
+    }
+    await sleep(100000)
   }
 
   chart();
@@ -263,11 +278,29 @@ const vis: BarChartRace = {
     id: 'dev_only_bar_char_racing', 
     label: 'Bar Chart Race',
     options: {
-          title: {
-              type: 'string',
-              label: 'Title',
-              display: 'text',
-              default: 'Default Text'
+          barCount : {
+            type: 'number',
+            label: 'Quantidade de barras exibidas',
+            display: 'number',
+            default: 12
+          },
+          barsize : {
+            type: 'number',
+            label: 'Altura das barras',
+            display: 'number',           
+            default: 48
+          },
+          duration : {
+            type: 'number',
+            label: 'Duração da animação',
+            display: 'number',
+            default: 250
+          },
+          replay : {
+            type: 'boolean',
+            label: 'Permitir Replay?',
+            display: 'radio',
+            default: true
           }
     },
     create,
