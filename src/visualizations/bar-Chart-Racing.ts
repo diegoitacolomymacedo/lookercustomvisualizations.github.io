@@ -314,5 +314,5 @@ const vis: BarChartRace = {
     updateAsync,
     
 };
-
+//looker
 looker.plugins.visualizations.add(vis);
